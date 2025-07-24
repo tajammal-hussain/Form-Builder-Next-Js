@@ -189,7 +189,7 @@ function DesignerElementWrapper({element,index}:{element:FormElementInstance,ind
                         <BiSolidTrash className='h-6 w-6'/>
                     </Button>
                 </div>
-                <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
+                <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse'>
                 <p className='text-muted-foreground text-sm'>
                     Click for properties or drag to move
                 </p>
