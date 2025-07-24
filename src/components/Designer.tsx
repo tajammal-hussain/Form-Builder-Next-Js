@@ -10,7 +10,7 @@ import { Button } from './ui/button'
 import { BiSolidTrash } from "react-icons/bi";
 
 const Designer = () => {
-    const {elements,addElements,selectedElement,setSelectedElement} = useDesigner();
+    const {elements,addElements,selectedElement,setSelectedElement,removeElements, updateElement} = useDesigner();
 
     const droppable = useDroppable({
         id: 'designer-drop-area',
@@ -24,43 +24,72 @@ const Designer = () => {
             if(!active || !over) return;
 
             //check if the element is a designer btn element and the drop area is a designer drop area
-           const isDesignerBtnElement : boolean = active.data?.current?.isDesignerBtnElement;
-           const isDesignerDropArea : boolean = over.data?.current?.isDesignerDropArea;
+           const isDesignerBtnElement  = active.data?.current?.isDesignerBtnElement;
+           const isDesignerDropArea  = over.data?.current?.isDesignerDropArea;
 
 
            if(isDesignerBtnElement && isDesignerDropArea){
-            const type = active.data?.current?.type;
-            const newElmenet = FormElements[type as ElementsType].constructor(
-                idGenerator()
-            )
-            addElements(elements.length,[newElmenet]);
-            return;
-           }
-           
-           //check if the element is a designer element and the drop area is a designer drop area
-           const isDroppingOverDesignerElementTopHalf = over.data.current?.isTopHalfDesignerElement;
-           const isDroppingOverDesignerElementBottomHalf = over.data.current?.isBottomHalfDesignerElement;
-           const isDroppingOverDesignerElement = isDroppingOverDesignerElementTopHalf || isDroppingOverDesignerElementBottomHalf;
-           console.log(isDroppingOverDesignerElement);
-           if(isDroppingOverDesignerElement){
-                const elementId = active.data?.current?.elemnentId;
                 const type = active.data?.current?.type;
                 const newElmenet = FormElements[type as ElementsType].constructor(
                     idGenerator()
                 )
+                addElements(elements.length,newElmenet);
+                return;
+           }
+           
+           //check if the element is a designer element and the drop area is a designer drop area
+           const isDroppingOverDesignerElementTopHalf = over.data?.current?.isTopHalfDesignerElement;
+           const isDroppingOverDesignerElementBottomHalf = over.data?.current?.isBottomHalfDesignerElement;
+           const isDroppingOverDesignerElement = isDroppingOverDesignerElementTopHalf || isDroppingOverDesignerElementBottomHalf;
+           const isDraggingOverDesignerElement = active.data?.current?.isDesignerElement;
+
+           if(isDroppingOverDesignerElement && !isDraggingOverDesignerElement){
+                const type = active.data?.current?.type;
+                const newElmenet = FormElements[type as ElementsType].constructor(
+                    idGenerator()
+                )
+                const elementId = over.data?.current?.elementId;
                 const overElmenetIndex = elements.findIndex((el) => el.id === elementId);
-                if(!overElmenetIndex)
+                if(overElmenetIndex === -1)
                 {
                     throw new Error("Element not found");
                 }
+
                 let indexForNewElement = overElmenetIndex;
-                if(isDroppingOverDesignerElementTopHalf){
+                if(isDroppingOverDesignerElementBottomHalf){
                     indexForNewElement = indexForNewElement + 1;
                 }
 
-                addElements(indexForNewElement,[newElmenet]);
+                addElements(indexForNewElement,newElmenet);
                 return;
            }
+
+           //On Dragging the designer elements regarrange them accordingly
+           
+           if(isDraggingOverDesignerElement && isDroppingOverDesignerElement)
+            {
+                    const activeId = active.data?.current?.elemnentId;
+                    const overId = over.data?.current?.elementId;
+
+                    const activeElementIndex = elements.findIndex((el) => el.id === activeId);
+                    const overElementIndex = elements.findIndex((el) => el.id === overId);
+
+                    if(activeElementIndex === -1 || overElementIndex === -1)
+                    {
+                        throw new Error("Element not found");
+                    }
+
+                    const activeElement = {...elements[activeElementIndex]};
+
+                    removeElements(activeId);
+                    
+                    let indexForNewElement = overElementIndex;
+                    if(isDroppingOverDesignerElementBottomHalf){
+                        indexForNewElement = indexForNewElement + 1;
+                    }
+                    
+                    addElements(indexForNewElement,activeElement);
+            }
         }
     })
   return (
@@ -113,7 +142,7 @@ function DesignerElementWrapper({element,index}:{element:FormElementInstance,ind
         id : element.id + "-bottom",
         data: {
             type: element.type,
-            id: element.id,
+            elementId: element.id,
             isBottomHalfDesignerElement: true
         }
     })
@@ -130,7 +159,6 @@ function DesignerElementWrapper({element,index}:{element:FormElementInstance,ind
         return null;
     }
     const DesignerElement = FormElements[element.type].designerComponent;
-    console.log(topHalf.isOver);
     return (
         <>
         <div 
@@ -146,8 +174,8 @@ function DesignerElementWrapper({element,index}:{element:FormElementInstance,ind
             setSelectedElement(element);
          }}
          >
-            <div ref={topHalf.setNodeRef} className='absolute w-full h-1/12 rounded-t-md' />
-            <div ref={bottompHalf.setNodeRef} className='absolute w-full h-1/12 bottom-0 rounded-b-md' />
+            <div ref={topHalf.setNodeRef} className='absolute w-full h-1/2 rounded-t-md' />
+            <div ref={bottompHalf.setNodeRef} className='absolute  w-full bottom-0 h-1/2 rounded-b-md' />
 
             {mouseIsOver && (
                 <>
@@ -155,7 +183,7 @@ function DesignerElementWrapper({element,index}:{element:FormElementInstance,ind
                     <Button variant={'ghost'} size={'icon'} className='flex justify-center h-full border rounded-md rounded-l-none bg-red-500'
                     onClick={(e) => {
                         e.stopPropagation();
-                        removeElements(index);
+                        removeElements(element.id);
                     }}
                     >
                         <BiSolidTrash className='h-6 w-6'/>
@@ -171,7 +199,7 @@ function DesignerElementWrapper({element,index}:{element:FormElementInstance,ind
             
             {
                 topHalf.isOver && (
-                    <div  className={cn('absolute w-full h-1/12 rounded-t-md',topHalf.isOver && "ring-2 ring-primary")}></div>
+                    <div  className={cn('absolute w-full h-1/2 rounded-t-md',topHalf.isOver && "ring-2 ring-primary")}></div>
                 )
             }
           
@@ -181,7 +209,7 @@ function DesignerElementWrapper({element,index}:{element:FormElementInstance,ind
             </div>
             {
                 bottompHalf.isOver && (
-                    <div  className={cn('absolute  w-full h-1/12 bottom-0 rounded-b-md',bottompHalf.isOver && "ring-2 ring-primary")}></div>
+                    <div  className={cn('absolute  w-full bottom-0 h-1/2 rounded-b-md',bottompHalf.isOver && "ring-2 ring-primary")}></div>
                 )
             }
         </div>

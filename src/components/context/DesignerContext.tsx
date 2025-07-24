@@ -4,8 +4,8 @@ import { FormElementInstance } from '../FormElements';
 
 type DesignerContextType = {
     elements: FormElementInstance[];
-    addElements: (index:number, elements: FormElementInstance[]) => void;
-    removeElements: (index:number) => void;
+    addElements: (index:number, elements: FormElementInstance) => void;
+    removeElements: (id:string) => void;
     selectedElement: FormElementInstance | null;
     setSelectedElement: Dispatch<React.SetStateAction<FormElementInstance | null>>;
     updateElement: (id:string, element: FormElementInstance) => void;
@@ -25,20 +25,16 @@ export const DesignerContextProvider = ({children}: {children: React.ReactNode})
     const [elements,setElements] = useState<FormElementInstance[]>([]);
     const [selectedElement,setSelectedElement] = useState<FormElementInstance | null>(null);
 
-    const addElements = (index: number ,elements: FormElementInstance[]) => {
+    const addElements = (index: number ,elements: FormElementInstance) => {
         setElements((prev) =>{
             const newElements = [...prev];
-            newElements.splice(index,0,...elements);
+            newElements.splice(index,0,elements);
             return newElements;
         });
     }
 
-    const removeElements = (index: number) => {
-        setElements((prev) => {
-            const newElements = [...prev];
-            newElements.splice(index,1);
-            return newElements;
-        });
+    const removeElements = (id: string) => {
+        setElements((prev) => prev.filter((elements) => elements.id !== id));
     }
     const updateElement = (id:string, element: FormElementInstance) => {
         setElements((prev) => {
