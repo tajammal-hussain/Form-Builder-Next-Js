@@ -3,6 +3,7 @@ import { Button } from './ui/button'
 import { BsEye } from 'react-icons/bs'
 import { useDesigner } from './hooks/useDesigner';
 import { Dialog, DialogContent, DialogTrigger } from './ui/dialog';
+import { FormElements } from './FormElements';
 
 const PreviewDialogBtn = () => {
   const {elements} = useDesigner();
@@ -21,6 +22,19 @@ const PreviewDialogBtn = () => {
           <p className='text-sm text-muted-foreground'>
             Preview
           </p>
+          <p>
+
+          </p>
+        </div>
+        <div className='bg-accent flex flex-col flex-grow items-center justify-center p-4 overflow-y-auto'>
+          <div className='max-w-[620px] flex flex-col gap-4 flex-grow bg-background h-full w-full rounded-2xl p-8 overflow-y-auto'>
+            {
+              elements.map((element) => {
+                const FormComponent = FormElements[element.type].formComponent;
+                return <FormComponent key={element.id} element={element} />
+              })
+            }
+          </div>
         </div>
       </DialogContent>
     </Dialog>

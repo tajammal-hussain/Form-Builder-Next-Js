@@ -1,5 +1,5 @@
 "use client"
-import React from 'react'
+import React, { useEffect } from 'react'
 import { GetFormById } from '../../actions/form'
 import PreviewDialogBtn from './PreviewDialogBtn'
 import SaveFormBtn from './SaveFormBtn'
@@ -7,11 +7,18 @@ import PublishFormBtn from './PublishFormBtn'
 import Designer from './Designer'
 import { DndContext, MouseSensor, TouchSensor, useSensors, useSensor } from '@dnd-kit/core'
 import DragOverlayWrapper from './DragOverlayWrapper'
+import { useDesigner } from './context/DesignerContext'
 
 type props = {
     form: Awaited<ReturnType<typeof GetFormById>>
 }
 const FormBuilder = ({form} : props) => {
+    const {setElements} = useDesigner();
+    useEffect(() => {
+        if(form){
+            setElements(JSON.parse(form.content));
+        }
+    }, [form, setElements]);
 
     const sensors = useSensors(
         useSensor(MouseSensor, {
@@ -26,6 +33,7 @@ const FormBuilder = ({form} : props) => {
             }
         })
     );
+    if(!form) return null;
     return (
     <DndContext sensors={sensors}>
     <main className='flex flex-col w-full'>
@@ -39,8 +47,8 @@ const FormBuilder = ({form} : props) => {
                 {
                     !form?.published && (
                         <>
-                        <SaveFormBtn />
-                        <PublishFormBtn />
+                        <SaveFormBtn formId={form?.id}/>
+                        <PublishFormBtn formId={form?.id}/>
                         </>
                     )
                 }

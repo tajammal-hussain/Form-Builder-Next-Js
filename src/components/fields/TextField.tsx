@@ -43,7 +43,7 @@ export const TextFieldFormElement: FormElement = {
         label: "Text Field",
     },
     designerComponent: DesignerComponent,
-    formComponent: () => <div>TextField</div>,
+    formComponent: FormComponent,
     propertiesComponent: PropertiesForm,
 }
 type CustomInstance = FormElementInstance & {
@@ -56,6 +56,7 @@ const propertiesFormSchema = z.object({
     required: z.boolean(),
     placeholder: z.string().max(50),
 })
+
 
 function PropertiesForm(
     {
@@ -197,6 +198,21 @@ function DesignerComponent({element}:{element:FormElementInstance}){
             {required && <span className="text-red-500">*</span>}
             </div>
             <Input readOnly disabled  placeholder={placeholder} />
+            {helperText && <p className="text-sm text-muted-foreground">{helperText}</p>}
+        </div>
+    )
+}
+
+function FormComponent({element}:{element:FormElementInstance}){
+    const elements = element as CustomInstance;
+    const {label,helperText,required,placeholder} = elements.extraAttributes;
+    return (
+        <div className="flex flex-col gap-2 w-full">
+            <div className="flex items-center gap-2">
+            <Label>{label}</Label>
+            {required && <span className="text-red-500">*</span>}
+            </div>
+            <Input   placeholder={placeholder} />
             {helperText && <p className="text-sm text-muted-foreground">{helperText}</p>}
         </div>
     )
